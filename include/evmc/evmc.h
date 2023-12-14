@@ -53,23 +53,35 @@ enum
  *
  * 32 bytes of data capable of storing e.g. 256-bit hashes.
  */
+#ifndef __ZKLLVM__
 typedef struct evmc_bytes32
 {
     /** The 32 bytes. */
     uint8_t bytes[32];
 } evmc_bytes32;
+#else
+typedef __uint256_t evmc_bytes32;
+#endif
 
 /**
  * The alias for evmc_bytes32 to represent a big-endian 256-bit integer.
  */
+#ifndef __ZKLLVM__
 typedef struct evmc_bytes32 evmc_uint256be;
+#else
+typedef __uint256_t evmc_uint256be;
+#endif
 
 /** Big-endian 160-bit hash suitable for keeping an Ethereum address. */
+#ifndef __ZKLLVM__
 typedef struct evmc_address
 {
     /** The 20 bytes of the hash. */
     uint8_t bytes[20];
 } evmc_address;
+#else
+typedef __uint256_t evmc_address;
+#endif
 
 /** The kind of call-like instruction. */
 enum evmc_call_kind
@@ -148,7 +160,11 @@ struct evmc_message
      * defined as `d` in the Yellow Paper.
      * This MAY be NULL.
      */
+#ifndef __ZKLLVM__
     const uint8_t* input_data;
+#else
+    const __uint256_t* input_data;
+#endif
 
     /**
      * The size of the message input data.

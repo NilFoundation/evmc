@@ -26,6 +26,7 @@ using bytes_view = std::basic_string_view<uint8_t>;
 /// The big-endian 160-bit hash suitable for keeping an Ethereum address.
 ///
 /// This type wraps C ::evmc_address to make sure objects of this type are always initialized.
+#ifndef __ZKLLVM__
 struct address : evmc_address
 {
     /// Default and converting constructor.
@@ -122,6 +123,10 @@ struct bytes32 : evmc_bytes32
     /// Implicit operator converting to bytes_view.
     inline constexpr operator bytes_view() const noexcept { return {bytes, sizeof(bytes)}; }
 };
+#else
+using bytes32 = evmc_bytes32;
+using address = evmc_address;
+#endif
 
 /// The alias for evmc::bytes32 to represent a big-endian 256-bit integer.
 using uint256be = bytes32;
@@ -170,6 +175,7 @@ inline constexpr uint64_t fnv1a_by64(uint64_t h, uint64_t x) noexcept
 }  // namespace fnv
 
 
+#ifndef __ZKLLVM__
 /// The "equal to" comparison operator for the evmc::address type.
 inline constexpr bool operator==(const address& a, const address& b) noexcept
 {
@@ -306,6 +312,7 @@ constexpr bytes32 operator""_bytes32(const char* s) noexcept
 }  // namespace literals
 
 using namespace literals;
+#endif
 
 
 /// @copydoc evmc_status_code_to_string
@@ -935,13 +942,18 @@ struct hash<evmc::address>
     constexpr size_t operator()(const evmc::address& s) const noexcept
     {
         using namespace evmc;
+#ifndef __ZKLLVM__
         using namespace fnv;
         return static_cast<size_t>(fnv1a_by64(
             fnv1a_by64(fnv1a_by64(fnv::offset_basis, load64le(&s.bytes[0])), load64le(&s.bytes[8])),
             load32le(&s.bytes[16])));
+#else
+        return static_cast<size_t>(s);
+#endif
     }
 };
 
+#ifndef __ZKLLVM__
 /// Hash operator template specialization for evmc::bytes32. Needed for unordered containers.
 template <>
 struct hash<evmc::bytes32>
@@ -958,4 +970,5 @@ struct hash<evmc::bytes32>
                        load64le(&s.bytes[24])));
     }
 };
+#endif
 }  // namespace std
